@@ -23,9 +23,6 @@ import seaborn as sns
 ### Data Loading
 """
 
-from google.colab import files
-files.upload()
-
 !mkdir -p ~/.kaggle
 !cp kaggle.json ~/.kaggle/kaggle.json
 !chmod 600 ~/.kaggle/kaggle.json
@@ -33,63 +30,69 @@ files.upload()
 !unzip stroke-prediction-dataset.zip
 
 df = pd.read_csv('healthcare-dataset-stroke-data.csv')
+df.drop(['id', 'work_type'], axis=1, inplace=True)
 df
 
-"""### Exploratory Data Analysis"""
+"""### Data Cleaning"""
 
 df.info()
 
 df.describe()
 
-"""### Handling Missing Value"""
+cat_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
+
+for col in cat_cols:
+    print(f"\n=== Fitur: {col} ===")
+    vc = df[col].value_counts(dropna=False)
+    pct = df[col].value_counts(normalize=True, dropna=False).mul(100).round(2)
+    summary = pd.DataFrame({
+        'count': vc,
+        'percent (%)': pct
+    })
+    print(summary)
+
+df = df[df['gender'] != 'Other'].copy()
+
+"""#### Handling Missing Value"""
 
 df.isna().sum()
 
-"""### Handling Outliers"""
+from sklearn.impute import SimpleImputer
 
-numeric_cols = df.select_dtypes(include='number').columns
+imp_median = SimpleImputer(strategy='median')
+df[['bmi']] = imp_median.fit_transform(df[['bmi']])
 
-num_cols = 2
-num_rows = (len(numeric_cols) + num_cols - 1) // num_cols
+"""#### Handling Imbalance Dataset"""
 
-fig, axes = plt.subplots(nrows=num_rows, ncols=num_cols, figsize=(12, 5 * num_rows))
-axes = axes.flatten()
+from collections import Counter
+from imblearn.over_sampling import SMOTENC
 
-for i, col in enumerate(numeric_cols):
-    sns.boxplot(x=df[col], ax=axes[i])
-    axes[i].set_title(f'Boxplot: {col}')
-    axes[i].set_xlabel(col)
+X = df.drop(columns='stroke')
+y = df['stroke']
 
-plt.tight_layout()
-plt.show()
+cat_cols = X.select_dtypes(include=['object']).columns.tolist()
+cat_indices = [X.columns.get_loc(col) for col in cat_cols]
 
-# Hitung Q1, Q3, dan IQR hanya untuk kolom numerikal
-Q1 = df[numeric_cols].quantile(0.25)
-Q3 = df[numeric_cols].quantile(0.75)
-IQR = Q3 - Q1
-# Buat filter untuk menghapus baris yang mengandung outlier di kolom numerikal
-filter_outliers = ~((df[numeric_cols] < (Q1 - 1.5 * IQR)) |
-                    (df[numeric_cols] > (Q3 + 1.5 * IQR))).any(axis=1)
-# Terapkan filter ke dataset asli (termasuk kolom non-numerikal)
-df = df[filter_outliers]
-# Cek ukuran dataset setelah outlier dihapus
-df.shape
+print("Kolom kategorikal:", cat_cols)
+print("Indeks kategorikal:", cat_indices)
 
-numeric_cols = df.select_dtypes(include='number').columns
+smote_nc = SMOTENC(
+    categorical_features=cat_indices,
+    sampling_strategy=1.0,
+    random_state=42
+)
+X_sm, y_sm = smote_nc.fit_resample(X, y)
 
-num_cols = 2
-num_rows = (len(numeric_cols) + num_cols - 1) // num_cols
+print("Distribusi sebelum SMOTENC:", Counter(y))
+print("Distribusi setelah SMOTENC:", Counter(y_sm))
 
-fig, axes = plt.subplots(nrows=num_rows, ncols=num_cols, figsize=(12, 5 * num_rows))
-axes = axes.flatten()
+df = pd.DataFrame(X_sm, columns=X.columns)
 
-for i, col in enumerate(numeric_cols):
-    sns.boxplot(x=df[col], ax=axes[i])
-    axes[i].set_title(f'Boxplot: {col}')
-    axes[i].set_xlabel(col)
+df['stroke'] = y_sm
+df = df.reset_index(drop=True)
 
-plt.tight_layout()
-plt.show()
+print("\nShape df:", df.shape)
+display(df.head())
 
 """### Exploratory Data Analysis
 
@@ -98,11 +101,6 @@ plt.show()
 
 numerical_features = df.select_dtypes(include='number').columns
 categorical_features = df.select_dtypes(include='object').columns.to_list()
-
-print(categorical_features)
-print(numerical_features)
-
-print(df['age'])
 
 for feature in categorical_features:
     count = df[feature].value_counts()
@@ -124,6 +122,10 @@ df.hist(bins=50, figsize=(20,15))
 plt.show()
 
 """#### Multivariate Analysis"""
+
+for col in categorical_features:
+  sns.catplot(x=col, y="stroke", kind="bar", dodge=False, height = 4, aspect = 3,  data=df, palette="Set3")
+  plt.title("Rata-rata 'stroke' Relatif terhadap - {}".format(col))
 
 sns.pairplot(df, diag_kind = 'kde')
 
