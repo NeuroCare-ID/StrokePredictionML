@@ -23,6 +23,9 @@ import seaborn as sns
 ### Data Loading
 """
 
+from google.colab import files
+files.upload()
+
 !mkdir -p ~/.kaggle
 !cp kaggle.json ~/.kaggle/kaggle.json
 !chmod 600 ~/.kaggle/kaggle.json
@@ -132,6 +135,26 @@ sns.pairplot(df, diag_kind = 'kde')
 plt.figure(figsize=(10, 8))
 correlation_matrix = df[numerical_features].corr().round(2)
 
-# Untuk menge-print nilai di dalam kotak, gunakan parameter anot=True
 sns.heatmap(data=correlation_matrix, annot=True, cmap='coolwarm', linewidths=0.5, )
 plt.title("Correlation Matrix untuk Fitur Numerik ", size=20)
+
+"""## Data Pre-Processing"""
+
+df_encoded = pd.get_dummies(df, columns=categorical_features)
+df_encoded
+
+X = df_encoded.drop(columns='stroke')
+y = df_encoded['stroke']
+
+from sklearn.model_selection import train_test_split
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+print(f'Total sample semua dataset: {len(X)}')
+print(f'Total sample train dataset: {len(X_train)}')
+print(f'Total sample test dataset: {len(X_test)}')
+
+from sklearn.preprocessing import MinMaxScaler
+# Standarisasi
+scaler = MinMaxScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
