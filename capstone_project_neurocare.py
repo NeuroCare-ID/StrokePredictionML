@@ -23,9 +23,6 @@ import seaborn as sns
 ### Data Loading
 """
 
-from google.colab import files
-files.upload()
-
 !mkdir -p ~/.kaggle
 !cp kaggle.json ~/.kaggle/kaggle.json
 !chmod 600 ~/.kaggle/kaggle.json
@@ -158,3 +155,46 @@ from sklearn.preprocessing import MinMaxScaler
 scaler = MinMaxScaler()
 X_train = scaler.fit_transform(X_train)
 X_test = scaler.transform(X_test)
+
+"""## Modelling"""
+
+from tensorflow.keras.callbacks import EarlyStopping, Callback
+
+class myCallback(tf.keras.callbacks.Callback):
+    def on_epoch_end(self, epoch, logs=None):
+        if logs.get('accuracy') > 0.9:
+            print("\nAkurasi telah mencapai > 90%!")
+            self.model.stop_training = True
+
+callbacks = myCallback()
+
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Dropout, BatchNormalization
+
+model = Sequential([
+    Dense(128, input_dim=X_train.shape[1], activation='relu'),
+    BatchNormalization(),
+    Dropout(0.3),
+    Dense(64, activation='relu'),
+    BatchNormalization(),
+    Dropout(0.2),
+    Dense(32, activation='relu'),
+    Dense(1, activation='sigmoid')
+])
+
+model.compile(optimizer=keras.optimizers.Adam(learning_rate=0.003),
+              loss='binary_crossentropy',
+              metrics=['accuracy'])
+
+model.summary()
+
+history = model.fit(
+    X_train, y_train,
+    epochs=200,
+    batch_size=128,
+    validation_split=0.2,
+    callbacks=[callbacks],
+    verbose=2
+)
