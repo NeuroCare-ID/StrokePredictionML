@@ -32,9 +32,6 @@ from tensorflow.keras.layers import Dense, Dropout, BatchNormalization
 ### Data Loading
 """
 
-from google.colab import files
-files.upload()
-
 !mkdir -p ~/.kaggle
 !cp kaggle.json ~/.kaggle/kaggle.json
 !chmod 600 ~/.kaggle/kaggle.json
