@@ -11,12 +11,21 @@ Original file is located at
 ## Import Semua Packages/Library yang Digunakan
 """
 
-# Commented out IPython magic to ensure Python compatibility.
+import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import pandas as pd
-# %matplotlib inline
 import seaborn as sns
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import MinMaxScaler
+from collections import Counter
+from sklearn.impute import SimpleImputer
+from sklearn.utils import resample
+from sklearn.metrics import accuracy_score, f1_score, confusion_matrix, ConfusionMatrixDisplay, roc_curve, roc_auc_score, classification_report
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras.callbacks import EarlyStopping, Callback
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Dropout, BatchNormalization
 
 """## Data Preparation
 
@@ -57,42 +66,34 @@ df = df[df['gender'] != 'Other'].copy()
 
 df.isna().sum()
 
-from sklearn.impute import SimpleImputer
-
 imp_median = SimpleImputer(strategy='median')
 df[['bmi']] = imp_median.fit_transform(df[['bmi']])
 
 """#### Handling Imbalance Dataset"""
 
-from collections import Counter
-from imblearn.over_sampling import SMOTENC
+df_majority = df[df.stroke == 0]
+df_minority = df[df.stroke == 1]
 
-X = df.drop(columns='stroke')
-y = df['stroke']
+minority_groups = df_minority.groupby(['heart_disease', 'hypertension'])
 
-cat_cols = X.select_dtypes(include=['object']).columns.tolist()
-cat_indices = [X.columns.get_loc(col) for col in cat_cols]
+upsampled = []
+for name, group in minority_groups:
+    n_samples = df_majority.shape[0] // minority_groups.ngroups
+    upsampled_group = resample(
+        group,
+        replace=True,
+        n_samples=n_samples,
+        random_state=42
+    )
+    upsampled.append(upsampled_group)
 
-print("Kolom kategorikal:", cat_cols)
-print("Indeks kategorikal:", cat_indices)
+upsampled_minority = pd.concat(upsampled)
+df = pd.concat([df_majority, upsampled_minority])
 
-smote_nc = SMOTENC(
-    categorical_features=cat_indices,
-    sampling_strategy=1.0,
-    random_state=42
-)
-X_sm, y_sm = smote_nc.fit_resample(X, y)
-
-print("Distribusi sebelum SMOTENC:", Counter(y))
-print("Distribusi setelah SMOTENC:", Counter(y_sm))
-
-df = pd.DataFrame(X_sm, columns=X.columns)
-
-df['stroke'] = y_sm
-df = df.reset_index(drop=True)
+df = df.sample(frac=1, random_state=42).reset_index(drop=True)
 
 print("\nShape df:", df.shape)
-display(df.head())
+df.head()
 
 """### Exploratory Data Analysis
 
@@ -140,38 +141,41 @@ plt.title("Correlation Matrix untuk Fitur Numerik ", size=20)
 df_encoded = pd.get_dummies(df, columns=categorical_features)
 df_encoded
 
+def cha2ds2vasc(row):
+    score = 0
+    score += int(row['heart_disease'])
+    score += int(row['hypertension'])
+    if row['age'] >= 75:
+        score += 2
+    elif row['age'] >= 65:
+        score += 1
+    if 'gender_Male' in row and row['gender_Male'] == 0:
+        score += 1
+    return score
+
+df['cha2ds2vasc_score'] = df.apply(cha2ds2vasc, axis=1)
+
 X = df_encoded.drop(columns='stroke')
 y = df_encoded['stroke']
-
-from sklearn.model_selection import train_test_split
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 print(f'Total sample semua dataset: {len(X)}')
 print(f'Total sample train dataset: {len(X_train)}')
 print(f'Total sample test dataset: {len(X_test)}')
 
-from sklearn.preprocessing import MinMaxScaler
-# Standarisasi
 scaler = MinMaxScaler()
 X_train = scaler.fit_transform(X_train)
 X_test = scaler.transform(X_test)
 
 """## Modelling"""
 
-from tensorflow.keras.callbacks import EarlyStopping, Callback
-
 class myCallback(tf.keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs=None):
-        if logs.get('accuracy') > 0.9:
-            print("\nAkurasi telah mencapai > 90%!")
+        if logs.get('accuracy') > 0.92:
+            print("\nAkurasi telah mencapai > 92%!")
             self.model.stop_training = True
 
 callbacks = myCallback()
-
-import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Dropout, BatchNormalization
 
 model = Sequential([
     Dense(128, input_dim=X_train.shape[1], activation='relu'),
@@ -198,3 +202,66 @@ history = model.fit(
     callbacks=[callbacks],
     verbose=2
 )
+
+"""## Evaluasi dan Visualisasi"""
+
+y_pred_prob = model.predict(X_test)
+y_pred = (y_pred_prob >= 0.5).astype(int)
+
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred))
+
+fpr, tpr, thresholds = roc_curve(y_test, y_pred_prob)
+auc_score = roc_auc_score(y_test, y_pred_prob)
+plt.figure(figsize=(6, 6))
+plt.plot(fpr, tpr, label=f'AUC = {auc_score:.2f}')
+plt.plot([0, 1], [0, 1], linestyle='--', color='gray')
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('ROC Curve')
+plt.legend()
+plt.show()
+
+acc = history.history['accuracy']
+val_acc = history.history['val_accuracy']
+loss = history.history['loss']
+val_loss = history.history['val_loss']
+
+epochs = range(len(acc))
+
+plt.plot(epochs, acc, 'r')
+plt.plot(epochs, val_acc, 'b')
+plt.title('Training and Validation Accuracy')
+plt.ylabel('accuracy')
+plt.xlabel('epoch')
+plt.legend(['train', 'val'], loc='upper left')
+plt.show()
+
+plt.plot(epochs, loss, 'r')
+plt.plot(epochs, val_loss, 'b')
+plt.ylabel('loss')
+plt.xlabel('epoch')
+plt.legend(['train', 'val'], loc='upper left')
+plt.title('Training and Validaion Loss')
+plt.show()
+
+target_names = ['No Stroke', 'Stroke']
+cm = confusion_matrix(y_test, y_pred)
+
+plt.figure(figsize=(7, 6))
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=target_names, yticklabels=target_names, linewidths=.5, linecolor='gray')
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+plt.title('Confusion Matrix Stroke')
+plt.show()
+
+y_cr = classification_report(y_test, y_pred, target_names=target_names, digits=4)
+print(y_cr)
+
+"""## Konversi Model"""
+
+model.save("model.h5")
+
+!pip install tensorflowjs
+
+!tensorflowjs_converter --input_format=keras model.h5 tfjs_model
