@@ -32,6 +32,9 @@ from tensorflow.keras.layers import Dense, Dropout, BatchNormalization
 ### Data Loading
 """
 
+from google.colab import files
+files.upload()
+
 !mkdir -p ~/.kaggle
 !cp kaggle.json ~/.kaggle/kaggle.json
 !chmod 600 ~/.kaggle/kaggle.json
@@ -265,3 +268,50 @@ model.save("model.h5")
 !pip install tensorflowjs
 
 !tensorflowjs_converter --input_format=keras model.h5 tfjs_model
+
+"""## Inferensi Model"""
+
+def infer_stroke(model, scaler, encoder, input_dict, glucose_median):
+    import pandas as pd
+    user_df = pd.DataFrame([input_dict])
+    # Impute avg_glucose_level jika null
+    if pd.isnull(user_df.loc[0, 'avg_glucose_level']):
+        user_df.loc[0, 'avg_glucose_level'] = glucose_median
+    user_df_encoded = pd.get_dummies(user_df)
+    for col in encoder.columns:
+        if col not in user_df_encoded:
+            user_df_encoded[col] = 0
+    user_df_encoded = user_df_encoded[encoder.columns]
+    user_scaled = scaler.transform(user_df_encoded)
+    proba = model.predict(user_scaled)[0][0]
+    pred = int(proba >= 0.5)
+    return {
+        'probabilitas_stroke': f'{proba*100:.2f}%',
+        'prediksi': 'Stroke' if pred == 1 else 'No Stroke'
+    }
+
+user_input = {}
+user_input['gender'] = input('Jenis Kelamin (Male/Female): ')
+user_input['age'] = float(input('Umur: '))
+tinggi_badan = float(input('Tinggi Badan(cm): ')) / 100
+berat_badan = float(input('Berat Badan(kg): '))
+user_input['bmi'] = berat_badan / (tinggi_badan ** 2)
+user_input['hypertension'] = int(input('Hypertension (0=tidak, 1=ya): '))
+user_input['heart_disease'] = int(input('Heart Disease (0=tidak, 1=ya): '))
+user_input['ever_married'] = input('Pernah Menikah? (Yes/No): ')
+user_input['Residence_type'] = input('Tipe Tempat Tinggal (Urban/Rural): ')
+
+gl_str = input('Rata-rata Glukosa (boleh dikosongi): ')
+if gl_str.strip() == '':
+    user_input['avg_glucose_level'] = np.nan
+else:
+    user_input['avg_glucose_level'] = float(gl_str)
+
+
+user_input['smoking_status'] = input('Status Merokok (never smoked/smokes): ')
+
+encoder_col = df_encoded.drop(columns='stroke')
+glucose_median = df['avg_glucose_level'].median()
+
+hasil = infer_stroke(model, scaler, encoder_col, user_input, glucose_median)
+print(hasil)
