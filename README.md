@@ -1,29 +1,27 @@
 # NeuroCare 🧠💙
 
-## Website Prediksi, Pencegahan, dan Penanganan Risiko Stroke Berbasis AI
+## Website Prediksi, Pencegahan, dan Penanganan Risiko Stroke
 
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
 [![TensorFlow](https://img.shields.io/badge/TensorFlow-2.x-orange.svg)](https://www.tensorflow.org/)
 [![Scikit-learn](https://img.shields.io/badge/Scikit--learn-0.24%2B-brightgreen.svg)](https://scikit-learn.org/)
-[![Kaggle](https://img.shields.io/badge/Dataset-Kaggle-20BEFF.svg)]
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## 📋 Deskripsi Proyek
 
-[cite_start]**NeuroCare** adalah sebuah platform web inovatif yang dirancang untuk menjadi solusi komprehensif dalam pencegahan, deteksi dini, dan manajemen stroke. [cite: 17, 68] [cite_start]Dengan memanfaatkan kekuatan _Machine Learning_ dan _Artificial Intelligence_, NeuroCare bertujuan untuk memberdayakan masyarakat Indonesia dengan alat prediksi risiko yang akurat dan informasi kesehatan yang mudah diakses. [cite: 68] Proyek ini dikembangkan dengan semangat inovasi di bidang kesehatan sebagai bagian dari **Coding Camp 2025**.
+**NeuroCare** adalah sebuah platform web inovatif yang dirancang untuk menjadi solusi komprehensif dalam pencegahan, deteksi dini, dan manajemen stroke. Dengan memanfaatkan kekuatan _Machine Learning_, NeuroCare bertujuan untuk memberdayakan masyarakat Indonesia dengan alat prediksi risiko yang akurat dan informasi kesehatan yang mudah diakses. Proyek ini dikembangkan dengan semangat inovasi di bidang kesehatan sebagai bagian dari **Coding Camp 2025**.
 
 ## 🎯 Latar Belakang
 
-[cite_start]Stroke merupakan salah satu tantangan kesehatan terbesar di Indonesia, menempati **posisi kedua sebagai penyebab kematian** dan menjadi penyebab utama kecacatan dengan prevalensi 10,9 per 1.000 penduduk. [cite: 65] [cite_start]Data dari Kemenkes (2023) menyoroti urgensi masalah ini, di mana deteksi dini menjadi kunci untuk mencegah komplikasi fatal dan meningkatkan kualitas hidup pasien. [cite: 65, 66] [cite_start]NeuroCare hadir sebagai jawaban proaktif untuk mengatasi masalah ini dengan menyediakan platform yang tidak hanya prediktif, tetapi juga edukatif dan suportif. [cite: 18]
+Stroke merupakan salah satu tantangan kesehatan terbesar di Indonesia, menempati **posisi kedua sebagai penyebab kematian** dan menjadi penyebab utama kecacatan dengan prevalensi 10,9 per 1.000 penduduk. Data dari Kemenkes (2023) menyoroti urgensi masalah ini, di mana deteksi dini menjadi kunci untuk mencegah komplikasi fatal dan meningkatkan kualitas hidup pasien. NeuroCare hadir sebagai jawaban proaktif untuk mengatasi masalah ini dengan menyediakan platform yang tidak hanya prediktif, tetapi juga edukatif dan suportif.
 
 ## ✨ Fitur Utama
 
-[cite_start]Platform NeuroCare dirancang dengan berbagai fitur utama yang saling terintegrasi untuk memberikan layanan kesehatan stroke yang holistik: [cite: 82]
+Platform NeuroCare dirancang dengan berbagai fitur utama yang saling terintegrasi untuk memberikan layanan kesehatan stroke yang holistik:
 
-🤖 **1. Sistem Prediksi Risiko Stroke Berbasis AI:**
+🤖 **1. Sistem Prediksi Risiko Stroke:**
 
-- [cite_start]Menggunakan **Deep Neural Network (DNN)** yang dibangun dengan _TensorFlow/Keras_ untuk akurasi prediksi yang tinggi. [cite: 47]
-- [cite_start]Implementasi algoritma skoring klinis **CHA₂DS₂-VASc** sebagai fitur tambahan untuk meningkatkan relevansi medis. [cite: 69]
+- Menggunakan **Deep Neural Network (DNN)** yang dibangun dengan _TensorFlow/Keras_ untuk akurasi prediksi yang tinggi. [cite: 47]
+- Implementasi algoritma skoring klinis **CHA₂DS₂-VASc** sebagai fitur tambahan untuk meningkatkan relevansi medis. [cite: 69]
 - Model dilatih dengan teknik _stratified upsampling_ untuk menangani ketidakseimbangan data, menghasilkan performa yang andal bahkan untuk kasus minoritas (pasien berisiko stroke).
 
 📊 **2. Analisis Data dan Pra-pemrosesan Komprehensif:**
@@ -50,7 +48,7 @@
 - Fungsi inferensi yang terstruktur rapi, siap untuk diintegrasikan ke dalam API.
 - Arsitektur proyek yang modular, memisahkan antara data, model, dan kode aplikasi.
 
-## 🛠️ Tumpukan Teknologi (Tech Stack)
+## 🛠️ Tech Stack
 
 Proyek ini dibangun menggunakan teknologi modern di bidang _Data Science_ dan pengembangan web:
 
@@ -74,7 +72,7 @@ Proyek ini dibangun menggunakan teknologi modern di bidang _Data Science_ dan pe
 NeuroCare/
 ├── 📄 healthcare-dataset-stroke-data.csv
 ├── 📓 Capstone_Project_NeuroCare.ipynb
-├── 📄 [Coding Camp 2025] Project Plan - University - CC25-CF073.pdf
+├── 📓 Capstone_Project_NeuroCare.py
 └── 📄 README.md
 ```
 
@@ -328,8 +326,8 @@ Simpan model yang telah dilatih untuk digunakan di tahap _deployment_.
 
 ```python
 # Simpan model dalam format H5
-model.save("neurocare_stroke_model.h5")
-print("Model berhasil disimpan sebagai neurocare_stroke_model.h5")
+model.save("model.h5")
+print("Model berhasil disimpan sebagai model.h5")
 ```
 
 Dengan mengikuti langkah-langkah di atas, Anda dapat mereplikasi proses pengembangan model prediksi risiko stroke NeuroCare secara lengkap.
@@ -340,18 +338,16 @@ Dengan mengikuti langkah-langkah di atas, Anda dapat mereplikasi proses pengemba
 
 ### Project Links:
 
-- **GitHub Repository**: [github.com/your-username/neurocare](https://github.com/your-username/neurocare)
-- **Documentation**: [neurocare-docs.github.io](https://neurocare-docs.github.io)
-- **Demo**: [neurocare-demo.herokuapp.com](https://neurocare-demo.herokuapp.com)
+- **GitHub Repository**: [NeuroCare-ID](https://github.com/NeuroCare-ID)
+- **Demo**: (coming soon)
 
 ### Team Contact:
 
-- **Email**: neurocare.team@gmail.com
-- **LinkedIn**: [NeuroCare Team](https://linkedin.com/company/neurocare-team)
+- **Email**: neurocareid@gmail.com
 
 ---
 
 ### ⭐ Jika proyek ini bermanfaat, jangan lupa berikan **star** di GitHub!
 
-**Made with ❤️ by NeuroCare Team - Coding Camp 2025**
+**Made with ❤️ by NeuroCare Team @2025**
 ```
