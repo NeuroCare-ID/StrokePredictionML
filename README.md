@@ -1,4 +1,4 @@
-# NeuroCare 🧠💙
+# NeuroCare 🧠
 
 ## Website Prediksi, Pencegahan, dan Penanganan Risiko Stroke
 
@@ -8,7 +8,7 @@
 
 ## 📋 Deskripsi Proyek
 
-**NeuroCare** adalah sebuah platform web inovatif yang dirancang untuk menjadi solusi komprehensif dalam pencegahan, deteksi dini, dan manajemen stroke. Dengan memanfaatkan kekuatan _Machine Learning_, NeuroCare bertujuan untuk memberdayakan masyarakat Indonesia dengan alat prediksi risiko yang akurat dan informasi kesehatan yang mudah diakses. Proyek ini dikembangkan dengan semangat inovasi di bidang kesehatan sebagai bagian dari **Coding Camp 2025**.
+**NeuroCare** adalah sebuah platform web inovatif yang dirancang untuk menjadi solusi komprehensif dalam pencegahan, deteksi dini, dan manajemen stroke. Dengan memanfaatkan _Machine Learning_, NeuroCare bertujuan untuk memberdayakan masyarakat Indonesia dengan alat prediksi risiko yang akurat dan informasi kesehatan yang mudah diakses. Proyek ini dikembangkan dengan semangat inovasi di bidang kesehatan sebagai bagian dari **Coding Camp 2025 by DBS Foundation x Dicoding Indonesia**.
 
 ## 🎯 Latar Belakang
 
@@ -72,7 +72,7 @@ Proyek ini dibangun menggunakan teknologi modern di bidang _Data Science_ dan pe
 NeuroCare/
 ├── 📄 healthcare-dataset-stroke-data.csv
 ├── 📓 Capstone_Project_NeuroCare.ipynb
-├── 📓 Capstone_Project_NeuroCare.py
+├── 📓 capstone_project_neurocare.py
 └── 📄 README.md
 ```
 
@@ -109,7 +109,7 @@ neurocare_env\Scripts\activate
 source neurocare_env/bin/activate
 ```
 
-### **Langkah 1: Instalasi Pustaka (Libraries)**
+### **Langkah 1: Libraries Installation**
 
 Instal semua pustaka yang dibutuhkan menggunakan `pip`.
 
@@ -117,7 +117,7 @@ Instal semua pustaka yang dibutuhkan menggunakan `pip`.
 pip install pandas numpy matplotlib seaborn scikit-learn tensorflow
 ```
 
-### **Langkah 2: Akuisisi dan Pemuatan Data**
+### **Langkah 2: Load Data and Acquisition**
 
 Dataset yang kami gunakan bersumber dari Kaggle. Anda dapat mengunduhnya secara manual atau menggunakan Kaggle API.
 
@@ -136,7 +136,7 @@ df.drop(['id', 'work_type'], axis=1, inplace=True)
 print(df.head())
 ```
 
-### **Langkah 3: Pembersihan dan Pra-pemrosesan Data**
+### **Langkah 3: Data Cleaning and Pre-processing**
 
 Tahap ini sangat krusial untuk memastikan kualitas data sebelum dimasukkan ke dalam model.
 
@@ -192,7 +192,7 @@ df_balanced = pd.concat([df_majority, upsampled_minority])
 df = df_balanced.sample(frac=1, random_state=42).reset_index(drop=True)
 ```
 
-### **Langkah 4: Rekayasa Fitur (Feature Engineering)**
+### **Langkah 4: Feature Engineering**
 
 Kami membuat fitur baru, yaitu skor **CHA₂DS₂-VASc**, untuk memberikan konteks klinis tambahan pada model.
 
@@ -217,7 +217,7 @@ def calculate_cha2ds2vasc(row):
 df['cha2ds2vasc_score'] = df.apply(calculate_cha2ds2vasc, axis=1)
 ```
 
-### **Langkah 5: Encoding dan Penskalaan Fitur**
+### **Langkah 5: Encoding dan Feature Scaling**
 
 Model _machine learning_ memerlukan input numerik. Oleh karena itu, fitur kategorikal perlu diubah.
 
@@ -249,7 +249,7 @@ X_train_scaled = scaler.fit_transform(X_train)
 X_test_scaled = scaler.transform(X_test)
 ```
 
-### **Langkah 6: Pengembangan dan Pelatihan Model**
+### **Langkah 6: Development and Training Model**
 
 Kami membangun model _Deep Neural Network_ menggunakan TensorFlow/Keras.
 
@@ -290,7 +290,7 @@ history = model.fit(
 )
 ```
 
-### **Langkah 7: Evaluasi Model**
+### **Langkah 7: Model Evaluation**
 
 Setelah pelatihan, kami mengevaluasi performa model pada data pengujian.
 
@@ -320,7 +320,7 @@ plt.ylabel('Actual')
 plt.show()
 ```
 
-### **Langkah 8: Penyimpanan Model**
+### **Langkah 8: Save Model**
 
 Simpan model yang telah dilatih untuk digunakan di tahap _deployment_.
 
@@ -328,6 +328,82 @@ Simpan model yang telah dilatih untuk digunakan di tahap _deployment_.
 # Simpan model dalam format H5
 model.save("model.h5")
 print("Model berhasil disimpan sebagai model.h5")
+```
+
+Dengan mengikuti langkah-langkah di atas, Anda dapat mereplikasi proses pengembangan model prediksi risiko stroke NeuroCare secara lengkap.
+
+### **Langkah 9: Inferensi Model**
+
+Langkah terakhir adalah menggunakan model yang telah dilatih untuk membuat prediksi pada data baru (inferensi). Fungsi berikut mensimulasikan bagaimana aplikasi akan menerima input pengguna, memprosesnya, dan memberikan hasil prediksi.
+
+```python
+# Mendefinisikan fungsi untuk melakukan inferensi.
+def infer_stroke(model, scaler, encoder_columns, input_dict, glucose_median):
+    import pandas as pd
+
+    # Mengubah input dictionary dari pengguna menjadi DataFrame.
+    user_df = pd.DataFrame([input_dict])
+
+    # Impute avg_glucose_level jika null
+    if pd.isnull(user_df.loc[0, 'avg_glucose_level']):
+        user_df.loc[0, 'avg_glucose_level'] = glucose_median
+
+    # Melakukan one-hot encoding pada input pengguna.
+    user_df_encoded = pd.get_dummies(user_df)
+
+    # Menyamakan kolom input dengan kolom yang digunakan saat pelatihan.
+    # Menambahkan kolom yang tidak ada di input pengguna dan mengisinya dengan 0.
+    for col in encoder_columns.columns:
+        if col not in user_df_encoded:
+            user_df_encoded[col] = 0
+
+    # Memastikan urutan kolom sama persis dengan data latih.
+    user_df_encoded = user_df_encoded[encoder_columns.columns]
+
+    # Menskalakan data input menggunakan scaler yang sama dari pelatihan.
+    user_scaled = scaler.transform(user_df_encoded)
+
+    # Melakukan prediksi probabilitas.
+    proba = model.predict(user_scaled)[0][0]
+
+    # Mengonversi probabilitas menjadi prediksi kelas.
+    pred = int(proba >= 0.5)
+
+    return {
+        'probabilitas_stroke': f'{proba*100:.2f}%',
+        'prediksi': 'Stroke' if pred == 1 else 'No Stroke'
+    }
+
+# --- Contoh Penggunaan Interaktif ---
+
+# Menerima input dari pengguna.
+user_input = {}
+user_input['gender'] = input('Jenis Kelamin (Male/Female): ')
+user_input['age'] = float(input('Umur: '))
+tinggi_badan = float(input('Tinggi Badan (cm): ')) / 100
+berat_badan = float(input('Berat Badan (kg): '))
+user_input['bmi'] = berat_badan / (tinggi_badan ** 2)
+user_input['hypertension'] = int(input('Memiliki Hipertensi (0=tidak, 1=ya): '))
+user_input['heart_disease'] = int(input('Memiliki Penyakit Jantung (0=tidak, 1=ya): '))
+user_input['ever_married'] = input('Status Pernikahan (Yes/No): ')
+user_input['Residence_type'] = input('Tipe Tempat Tinggal (Urban/Rural): ')
+user_input['smoking_status'] = input('Status Merokok (never smoked/formerly smoked/smokes): ')
+
+# Input glukosa bersifat opsional
+gl_str = input('Rata-rata Kadar Glukosa (kosongi jika tidak tahu): ')
+if gl_str.strip() == '':
+    user_input['avg_glucose_level'] = np.nan
+else:
+    user_input['avg_glucose_level'] = float(gl_str)
+
+# Menyiapkan argumen yang diperlukan oleh fungsi inferensi.
+encoder_cols = X_train  # Menggunakan kolom dari X_train sebagai referensi
+glucose_median_val = df['avg_glucose_level'].median()
+
+# Memanggil fungsi inferensi dan mencetak hasilnya.
+hasil_prediksi = infer_stroke(model, scaler, encoder_cols, user_input, glucose_median_val)
+print("\n--- Hasil Prediksi ---")
+print(hasil_prediksi)
 ```
 
 Dengan mengikuti langkah-langkah di atas, Anda dapat mereplikasi proses pengembangan model prediksi risiko stroke NeuroCare secara lengkap.
