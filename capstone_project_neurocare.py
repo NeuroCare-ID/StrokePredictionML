@@ -333,17 +333,6 @@ plt.title("Correlation Matrix untuk Fitur Numerik ", size=20)
 Menyiapkan data ke dalam format final yang dapat diterima oleh model machine learning.
 """
 
-# Menerapkan One-Hot Encoding pada fitur-fitur kategorikal.
-# pd.get_dummies() akan mengubah setiap kategori dalam fitur menjadi kolom biner baru (0 atau 1).
-df_encoded = pd.get_dummies(df, columns=categorical_features)
-# Menampilkan hasil DataFrame yang telah di-encode.
-df_encoded
-
-"""* **Metode yang digunakan:** **One-Hot Encoding**.
-* **Alasan penggunaan:** Model *neural network* hanya dapat memproses data numerik. One-Hot Encoding adalah cara standar untuk mengubah fitur kategorikal menjadi representasi numerik tanpa mengasumsikan adanya urutan (ordinalitas) antar kategori.
-* **Insight dan Hasil yang didapat:** DataFrame `df_encoded` kini sepenuhnya numerik. Kolom seperti `gender` diubah menjadi `gender_Female` dan `gender_Male`. Jumlah kolom bertambah dari 10 menjadi 16.
-"""
-
 # Mendefinisikan fungsi untuk menghitung skor CHA2DS2-VASc.
 def cha2ds2vasc(row):
     score = 0
@@ -360,14 +349,31 @@ def cha2ds2vasc(row):
 # Menerapkan fungsi ini untuk membuat kolom baru di DataFrame 'df'
 df['cha2ds2vasc_score'] = df.apply(cha2ds2vasc, axis=1)
 
+"""* **Metode yang digunakan** → ***Feature Engineering***. Secara spesifik, metode ini membuat fitur baru (`cha2ds2vasc_score`) dengan menerapkan fungsi kustom yang mengimplementasikan sistem skor klinis **CHA2DS2-VASc**.
+
+* **Alasan penggunaan** → Skor CHA2DS2-VASc adalah sistem penilaian yang sudah tervalidasi secara klinis dan digunakan oleh dokter di seluruh dunia untuk memperkirakan risiko stroke pada pasien. Dengan merekayasa fitur ini, kita melakukan beberapa hal penting:
+    * **Menyuntikkan Pengetahuan Domain**: Kita tidak hanya mengandalkan model untuk menemukan pola, tetapi juga secara eksplisit memasukkan pengetahuan medis yang sudah ada ke dalam data.
+    * **Menciptakan Fitur yang Kuat**: Fitur ini merangkum interaksi non-linear antara beberapa faktor risiko (usia, jenis kelamin, riwayat penyakit) ke dalam satu nilai numerik yang sangat informatif. Ini dapat membantu model untuk lebih mudah mengenali tingkat risiko.
+    * **Meningkatkan Interpretasi**: Kehadiran skor ini dapat membantu dalam menganalisis bagaimana prediksi model berhubungan dengan skor klinis standar.
+
+* **Insight dan Hasil yang didapat** →
+    * Menerjemahkan aturan skor CHA2DS2-VASc ke dalam logika Python. Skor bertambah berdasarkan kondisi: +1 untuk penyakit jantung, +1 untuk hipertensi, +1 atau +2 untuk kelompok usia tertentu, dan +1 jika jenis kelamin adalah perempuan.
+"""
+
+# Menerapkan One-Hot Encoding pada fitur-fitur kategorikal.
+# pd.get_dummies() akan mengubah setiap kategori dalam fitur menjadi kolom biner baru (0 atau 1).
+df_encoded = pd.get_dummies(df, columns=categorical_features)
+# Menampilkan hasil DataFrame yang telah di-encode.
+df_encoded
+
+"""* **Metode yang digunakan:** **One-Hot Encoding**.
+* **Alasan penggunaan:** Model *neural network* hanya dapat memproses data numerik. One-Hot Encoding adalah cara standar untuk mengubah fitur kategorikal menjadi representasi numerik tanpa mengasumsikan adanya urutan (ordinalitas) antar kategori.
+* **Insight dan Hasil yang didapat:** DataFrame `df_encoded` kini sepenuhnya numerik. Kolom seperti `gender` diubah menjadi `gender_Female` dan `gender_Male`. Jumlah kolom bertambah dari 10 menjadi 16.
+"""
+
 # Memisahkan fitur (X) dan target (y) dari 'df_encoded'.
 X = df_encoded.drop(columns='stroke')
 y = df_encoded['stroke']
-
-"""* **Metode yang digunakan:** *Feature Engineering* (membuat fitur baru) dan pemisahan data.
-* **Alasan penggunaan:** *Feature engineering* bertujuan untuk menciptakan fitur yang lebih informatif bagi model. Skor CHA2DS2-VASc adalah contoh yang sangat baik karena merangkum beberapa faktor risiko utama ke dalam satu nilai.
-
-"""
 
 # Membagi data menjadi data latih (X_train, y_train) dan data uji (X_test, y_test).
 # test_size=0.2 berarti 80% data untuk pelatihan dan 20% untuk pengujian.
@@ -376,9 +382,15 @@ print(f'Total sample semua dataset: {len(X)}')
 print(f'Total sample train dataset: {len(X_train)}')
 print(f'Total sample test dataset: {len(X_test)}')
 
-"""* **Metode yang digunakan:** Pembagian Data Latih-Uji.
-* **Alasan penggunaan:** Ini adalah langkah fundamental dalam machine learning. Model dilatih pada data latih dan dievaluasi pada data uji yang belum pernah "dilihat" sebelumnya. Ini memberikan estimasi yang tidak bias tentang bagaimana model akan berkinerja pada data baru di dunia nyata.
-* **Insight dan Hasil yang didapat:** Data telah berhasil dibagi menjadi 7776 sampel untuk pelatihan dan 1944 sampel untuk pengujian.
+"""* **Metode yang digunakan** → **Pemisahan Fitur-Target dan Pembagian Data Latih-Uji (*Train-Test Split*)**. Kode ini pertama-tama memisahkan dataset menjadi dua bagian: matriks fitur `X` (semua kolom kecuali `stroke`) dan vektor target `y` (kolom `stroke`). Selanjutnya, fungsi `train_test_split` dari Scikit-learn digunakan untuk membagi `X` dan `y` menjadi dua set yang terpisah: satu untuk pelatihan dan satu untuk pengujian.
+
+* **Alasan penggunaan** → Ini adalah langkah fundamental dan wajib dalam setiap alur kerja *supervised machine learning*. Tujuannya adalah untuk mensimulasikan skenario dunia nyata di mana model harus membuat prediksi pada data yang belum pernah "dilihat" sebelumnya.
+    * **Data Pelatihan (*Training Set*)**: Digunakan oleh model untuk belajar mengenali pola dan hubungan antara fitur dan target.
+    * **Data Pengujian (*Test Set*)**: Digunakan sebagai data "baru" yang steril untuk mengevaluasi seberapa baik model dapat menggeneralisasi pengetahuannya. Evaluasi pada set ini memberikan estimasi yang tidak bias tentang kinerja model di dunia nyata.
+
+* **Insight dan Hasil yang didapat** →
+    * **Alokasi Data**: Dataset yang berisi 9720 sampel telah berhasil dibagi menjadi **7776 sampel untuk pelatihan (80%)** dan **1944 sampel untuk pengujian (20%)**. Rasio 80/20 adalah praktik umum yang memberikan cukup data bagi model untuk belajar, sekaligus menyisakan data yang signifikan untuk evaluasi yang andal.
+    * **Reproduktifitas**: Penggunaan parameter `random_state=42` adalah detail teknis yang penting. Ini memastikan bahwa setiap kali kode ini dijalankan, data akan selalu dibagi dengan cara yang sama persis. Hal ini krusial untuk **reproduktifitas**, yang memungkinkan orang lain (atau Anda di masa depan) untuk mendapatkan hasil yang sama persis saat melatih ulang model.
 """
 
 # Membuat instance dari MinMaxScaler.
@@ -443,7 +455,7 @@ model.summary()
     * **Sigmoid Activation:** Menghasilkan output antara 0 dan 1, yang dapat diinterpretasikan sebagai probabilitas untuk masalah klasifikasi biner.
     * **Adam Optimizer:** Optimizer yang efisien dan populer yang menyesuaikan *learning rate* secara adaptif.
     * **Binary Crossentropy:** Fungsi *loss* standar untuk mengukur kesalahan dalam tugas klasifikasi biner.
-* **Insight dan Hasil yang didapat:** Ringkasan model (`model.summary()`) menunjukkan arsitektur yang telah dibangun, termasuk jumlah parameter yang dapat dilatih (13,185). Ini memberikan gambaran tentang kompleksitas model.
+* **Insight dan Hasil yang didapat:** Ringkasan model (`model.summary()`) menunjukkan arsitektur yang telah dibangun, termasuk jumlah parameter yang dapat dilatih. Ini memberikan gambaran tentang kompleksitas model.
 """
 
 # Memulai proses pelatihan model.
@@ -459,7 +471,7 @@ history = model.fit(
 """* **Metode yang digunakan:** Pelatihan model dengan `model.fit()`.
 * **Alasan penggunaan:** Ini adalah fungsi inti untuk melatih model pada data. Data validasi digunakan untuk memantau performa model pada data yang tidak digunakan dalam penyesuaian bobot.
 * **Insight dan Hasil yang didapat:** Log pelatihan menunjukkan bahwa model berhasil dilatih.
-    * Proses berhenti pada karena `callback` terpicu (akurasi pada data latih `accuracy: 0.9206` > 92%).
+    * Proses berhenti pada karena `callback` terpicu (akurasi pada data latih `accuracy` > 92%).
     * Baik `accuracy` (pada data latih) maupun `val_accuracy` (pada data validasi) menunjukkan tren meningkat secara konsisten.
     * Nilai `loss` dan `val_loss` juga menunjukkan tren menurun, yang menandakan model sedang belajar dengan baik.
     * Pada epoch terakhir, `val_accuracy` mencapai **0.9312**, menunjukkan bahwa model dapat menggeneralisasi dengan baik ke data validasi.
@@ -477,17 +489,19 @@ y_pred = (y_pred_prob >= 0.5).astype(int)
 print("\nClassification Report:")
 print(classification_report(y_test, y_pred))
 
-"""* **Metode yang digunakan:** `model.predict()` dan `classification_report`.
-* **Alasan penggunaan:** Untuk mendapatkan metrik evaluasi kuantitatif yang detail dari performa model pada data uji.
-* **Insight dan Hasil yang didapat:**
-    * **Accuracy:** Akurasi keseluruhan pada data uji adalah **93%**, yang sangat baik.
-    * **Precision (Presisi):**
-        * Untuk kelas 0 (No Stroke): 97%. Artinya, dari semua yang diprediksi 'No Stroke', 97% di antaranya benar.
-        * Untuk kelas 1 (Stroke): 89%. Artinya, dari semua yang diprediksi 'Stroke', 89% di antaranya benar.
-    * **Recall (Sensitivitas):**
-        * Untuk kelas 0 (No Stroke): 89%. Artinya, dari semua kasus 'No Stroke' yang sebenarnya, model berhasil mengidentifikasi 89%.
-        * Untuk kelas 1 (Stroke): **97%**. Model berhasil mengidentifikasi 97%. Tingkat recall yang tinggi untuk kelas positif dapat meminimalkan kasus yang terlewatkan (*false negatives*).
-    * **F1-score:** Rata-rata harmonik dari presisi dan recall, memberikan skor tunggal yang menyeimbangkan keduanya. Nilai F1-score 0.93 untuk kelas 'Stroke' menunjukkan performa yang sangat seimbang dan kuat.
+"""* **Metode yang digunakan** → **Prediksi Model dan Laporan Klasifikasi**. Kode ini menggunakan fungsi `model.predict()` untuk menghasilkan probabilitas prediksi pada data uji, yang kemudian dikonversi menjadi kelas biner ('Stroke' atau 'No Stroke'). Hasil prediksi ini dievaluasi menggunakan `classification_report` dari Scikit-learn untuk menghasilkan metrik performa yang terperinci.
+
+* **Alasan penggunaan** → *Classification Report* adalah alat evaluasi yang sangat penting karena memberikan gambaran yang lebih dari sekadar akurasi. Dalam konteks medis, memahami *jenis* kesalahan sangatlah krusial. Laporan ini memecah kinerja model berdasarkan metrik-metrik berikut:
+    * **Precision**: Seberapa sering model benar ketika ia memprediksi suatu kelas? (Penting untuk menghindari "alarm palsu").
+    * **Recall**: Dari semua kasus aktual suatu kelas, berapa banyak yang berhasil ditemukan oleh model? (Penting untuk menghindari kasus yang "terlewatkan").
+    * **F1-score**: Rata-rata harmonik dari *precision* dan *recall*, memberikan skor tunggal yang menyeimbangkan keduanya.
+
+* **Insight dan Hasil yang didapat** →
+    * **Performa Keseluruhan**: Akurasi model secara keseluruhan adalah **93%**, yang menandakan keandalan yang tinggi pada dataset uji.
+    * **Analisis untuk Kelas 'Stroke' (Kelas Positif/1)**:
+        * **Recall Luar Biasa (0.97)**: Ini adalah metrik terpenting dari model ini. Nilai 97% berarti model berhasil mengidentifikasi **97% dari semua pasien yang benar-benar berisiko stroke**. Dalam aplikasi skrining medis, ini adalah hasil yang sangat diinginkan karena meminimalkan jumlah kasus berisiko yang terlewat (*false negative*).
+        * **Precision Baik (0.89)**: Nilai 89% berarti ketika model memprediksi seorang pasien "berisiko stroke", prediksi tersebut benar 89% dari waktu. Ada sekitar 11% kemungkinan terjadinya "alarm palsu" (*false positive*).
+        * **F1-Score Tinggi (0.93)**: Skor F1 yang tinggi menunjukkan bahwa model berhasil mencapai keseimbangan yang sangat baik antara menemukan hampir semua pasien berisiko (recall tinggi) dan tidak terlalu sering memberikan alarm palsu (presisi yang baik).
 """
 
 # Menghitung False Positive Rate (FPR), True Positive Rate (TPR), dan ambang batas.
@@ -561,23 +575,23 @@ plt.show()
 y_cr = classification_report(y_test, y_pred, target_names=target_names, digits=4)
 print(y_cr)
 
-"""* **Metode yang digunakan** → ***Confusion Matrix** dan **Classification Report**. Keduanya adalah metode evaluasi standar untuk model klasifikasi. *Confusion matrix* menyajikan rincian jumlah prediksi yang benar dan salah, sementara *classification report* menerjemahkan angka-angka tersebut ke dalam metrik performa yang lebih intuitif seperti *precision*, *recall*, dan *F1-score*.
+"""* **Metode yang digunakan** → ***Confusion Matrix*** dan ***Classification Report***. Keduanya adalah metode evaluasi standar untuk model klasifikasi. *Confusion matrix* menyajikan rincian jumlah prediksi yang benar dan salah, sementara *classification report* menerjemahkan angka-angka tersebut ke dalam metrik performa yang lebih intuitif seperti *precision*, *recall*, dan *F1-score*.
 
 * **Alasan penggunaan** → Menggunakan kedua metode ini secara bersamaan memberikan evaluasi yang komprehensif. Akurasi saja tidak cukup, terutama dalam konteks medis di mana jenis kesalahan memiliki bobot yang berbeda. *Confusion matrix* secara transparan menunjukkan **jenis kesalahan** yang dibuat model (mana yang lebih sering salah tebak). *Classification report* kemudian mengkuantifikasi kinerja ini, memungkinkan kita untuk menilai trade-off antara **presisi** (seberapa akurat prediksi positifnya) dan **recall** (seberapa baik model menemukan semua kasus positif yang sebenarnya).
 
-* **Insight dan Hasil yang didapat**
+* **Insight dan Hasil yang didapat** →
 
     1.  **Pembacaan Kuantitatif dari *Confusion Matrix***:
-        * **True Positive (TP) = 943**: Model dengan benar mengidentifikasi 943 pasien yang berisiko stroke. Ini adalah keberhasilan utama model.
-        * **True Negative (TN) = 860**: Model dengan benar mengidentifikasi 860 pasien yang tidak berisiko stroke.
-        * **False Positive (FP) = 111**: Model salah mengidentifikasi 111 pasien sehat sebagai berisiko stroke. Ini adalah "kesalahan alarm palsu" (*Type I Error*). Meskipun tidak seberbahaya *False Negative*, kesalahan ini dapat menyebabkan kecemasan pada pasien dan memerlukan tes lanjutan yang tidak perlu.
-        * **False Negative (FN) = 30**: Model gagal mengidentifikasi 30 pasien yang sebenarnya berisiko stroke. Ini adalah **kesalahan paling kritis** dalam konteks medis (*Type II Error*), karena pasien yang berisiko tidak mendapatkan peringatan dini.
+        * **True Positive (TP) = 948**: Model dengan benar mengidentifikasi 948 pasien yang berisiko stroke. Ini adalah keberhasilan utama model.
+        * **True Negative (TN) = 857**: Model dengan benar mengidentifikasi 857 pasien yang tidak berisiko stroke.
+        * **False Positive (FP) = 114**: Model salah mengidentifikasi 114 pasien sehat sebagai berisiko stroke. Ini adalah "kesalahan alarm palsu" (*Type I Error*). Meskipun tidak seberbahaya *False Negative*, kesalahan ini dapat menyebabkan kecemasan pada pasien dan memerlukan tes lanjutan yang tidak perlu.
+        * **False Negative (FN) = 25**: Model gagal mengidentifikasi 25 pasien yang sebenarnya berisiko stroke.
 
     2.  **Analisis dari *Classification Report***:
-        * **Kekuatan Utama - Recall Tinggi**: Metrik **recall** untuk kelas 'Stroke' sangat tinggi, yaitu **0.9692 (96.9%)**. Ini adalah poin terkuat dari model ini. Artinya, dari semua pasien yang benar-benar berisiko stroke di dalam data uji, model berhasil "menemukan" **96.9%** di antaranya. Kemampuan untuk meminimalkan *False Negatives* (hanya 30 kasus terlewat) menjadikan model ini sangat efektif sebagai alat skrining atau deteksi dini.
-        * **Trade-Off - Presisi**: Sebagai konsekuensi dari recall yang sangat tinggi, metrik **precision** untuk kelas 'Stroke' sedikit lebih rendah, yaitu **0.8947 (89.5%)**. Ini berarti ketika model memprediksi seseorang berisiko 'Stroke', prediksi tersebut benar sekitar 89.5% dari waktu. Sisanya (sekitar 10.5%) adalah alarm palsu (FP).
-        * **Keseimbangan Performa - F1-Score**: **F1-score** untuk kelas 'Stroke' adalah **0.9304**, yang merupakan nilai yang sangat baik. Skor ini, yang merupakan rata-rata harmonik dari presisi dan recall, menunjukkan bahwa model berhasil mencapai keseimbangan yang solid antara mengidentifikasi sebagian besar kasus positif (recall tinggi) dan menjaga tingkat alarm palsu tetap terkendali (presisi yang baik).
-        * **Akurasi Keseluruhan**: Akurasi model adalah **92.75%**, yang mengonfirmasi bahwa secara umum model sangat andal.
+        * **Kekuatan Utama - Recall Tinggi**: Metrik **recall** untuk kelas 'Stroke' sangat tinggi, yaitu **0.9743 (97.4%)**. Ini adalah poin terkuat dari model ini. Artinya, dari semua pasien yang benar-benar berisiko stroke di dalam data uji, model berhasil "menemukan" **97.4%** di antaranya. Kemampuan untuk meminimalkan *False Negatives* (hanya 25 kasus terlewat) menjadikan model ini sangat efektif sebagai alat skrining atau deteksi dini.
+        * **Trade-Off - Presisi**: Sebagai konsekuensi dari recall yang sangat tinggi, metrik **precision** untuk kelas 'Stroke' sedikit lebih rendah, yaitu **0.8927 (89.3%)**. Ini berarti ketika model memprediksi seseorang berisiko 'Stroke', prediksi tersebut benar sekitar 89.3% dari waktu. Sisanya (sekitar 10.7%) adalah alarm palsu (FP).
+        * **Keseimbangan Performa - F1-Score**: **F1-score** untuk kelas 'Stroke' adalah **0.9317**, yang merupakan nilai yang sangat baik. Skor ini, yang merupakan rata-rata harmonik dari presisi dan recall, menunjukkan bahwa model berhasil mencapai keseimbangan yang solid antara mengidentifikasi sebagian besar kasus positif (recall tinggi) dan menjaga tingkat alarm palsu tetap terkendali (presisi yang baik).
+        * **Akurasi Keseluruhan**: Akurasi model adalah **92.85%**, yang mengonfirmasi bahwa secara umum model sangat andal.
 
 ## **7. Konversi Model**
 Menyimpan model yang telah dilatih dan mencoba mengubahnya ke format yang dapat digunakan di web.
@@ -662,9 +676,14 @@ glucose_median = df['avg_glucose_level'].median()
 hasil = infer_stroke(model, scaler, encoder_col, user_input, glucose_median)
 print(hasil)
 
-"""* **Metode yang digunakan:** Fungsi inferensi kustom yang membungkus semua langkah pra-pemrosesan.
-* **Alasan penggunaan:** Praktik untuk deployment. Fungsi ini memastikan bahwa data baru (dari pengguna) diproses dengan cara yang **sama persis** seperti data pelatihan (imputasi, encoding, penskalaan, urutan kolom). Konsistensi ini sangat penting untuk mendapatkan prediksi yang akurat.
-* **Insight dan Hasil yang didapat:**
-    * Fungsi ini secara efektif mensimulasikan bagaimana model akan digunakan dalam aplikasi nyata.
-    * Output dari contoh interaktif menunjukkan hasil prediksi untuk data pengguna: `{'probabilitas_stroke': '0.33%', 'prediksi': 'No Stroke'}`. Ini menunjukkan model berhasil memproses input dan memberikan output yang dapat dipahami, yaitu prediksi kelas beserta probabilitas.
+"""* **Metode yang digunakan** → **Fungsi Inferensi Kustom**. Kode ini mendefinisikan sebuah fungsi, `infer_stroke`, yang mengemas seluruh alur pra-pemrosesan data (imputasi, *one-hot encoding*, penyesuaian kolom, dan penskalaan) untuk satu input pengguna. Fungsi ini kemudian menggunakan model yang telah dilatih untuk menghasilkan prediksi.
+
+* **Alasan penggunaan** → Ini adalah praktik rekayasa perangkat lunak untuk *deployment*. Tanpa fungsi pembungkus seperti ini, setiap kali ada prediksi baru, pengembang harus secara manual mengulang semua langkah pra-pemrosesan. Dengan membungkusnya dalam satu fungsi, proses prediksi menjadi:
+    * **Konsisten**: Memastikan data baru diproses dengan cara yang **sama persis** seperti data pelatihan, yang vital untuk akurasi.
+    * **Reusable**: Fungsi ini dapat dipanggil berulang kali dengan mudah di berbagai bagian aplikasi (misalnya, dari sebuah *endpoint* API).
+    * **Terabstraksi**: Menyembunyikan kompleksitas pra-pemrosesan dari logika utama aplikasi.
+
+* **Insight dan Hasil yang didapat** →
+    * **Simulasi Dunia Nyata**: Kode ini secara efektif mensimulasikan bagaimana model akan berinteraksi dalam aplikasi NeuroCare yang sesungguhnya: menerima input dari pengguna, memprosesnya di *backend*, dan mengembalikan hasil yang dapat dipahami.
+    * **Analisis Output**: Untuk input pengguna spesifik (wanita 50 tahun dengan hipertensi, perokok, dll.), model menghasilkan prediksi **'No Stroke'** dengan probabilitas risiko sebesar **1.65%**. Ini menunjukkan bahwa berdasarkan data yang dipelajarinya, kombinasi faktor risiko pengguna tersebut belum mencapai ambang batas kritis untuk diklasifikasikan sebagai 'Stroke'.
 """
