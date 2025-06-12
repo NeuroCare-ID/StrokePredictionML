@@ -20,8 +20,8 @@ Platform NeuroCare dirancang dengan berbagai fitur utama yang saling terintegras
 
 🤖 **1. Sistem Prediksi Risiko Stroke:**
 
-- Menggunakan **Deep Neural Network (DNN)** yang dibangun dengan _TensorFlow/Keras_ untuk akurasi prediksi yang tinggi. [cite: 47]
-- Implementasi algoritma skoring klinis **CHA₂DS₂-VASc** sebagai fitur tambahan untuk meningkatkan relevansi medis. [cite: 69]
+- Menggunakan **Deep Neural Network (DNN)** yang dibangun dengan _TensorFlow/Keras_ untuk akurasi prediksi yang tinggi.
+- Implementasi algoritma skoring klinis **CHA₂DS₂-VASc** sebagai fitur tambahan untuk meningkatkan relevansi medis.
 - Model dilatih dengan teknik _stratified upsampling_ untuk menangani ketidakseimbangan data, menghasilkan performa yang andal bahkan untuk kasus minoritas (pasien berisiko stroke).
 
 📊 **2. Analisis Data dan Pra-pemrosesan Komprehensif:**
@@ -332,8 +332,6 @@ print("Model berhasil disimpan sebagai model.h5")
 
 Dengan mengikuti langkah-langkah di atas, Anda dapat mereplikasi proses pengembangan model prediksi risiko stroke NeuroCare secara lengkap.
 
-```
-
 ## 📞 Kontak dan Support
 
 ### Project Links:
@@ -350,4 +348,3 @@ Dengan mengikuti langkah-langkah di atas, Anda dapat mereplikasi proses pengemba
 ### ⭐ Jika proyek ini bermanfaat, jangan lupa berikan **star** di GitHub!
 
 **Made with ❤️ by NeuroCare Team @2025**
-```
